@@ -1,0 +1,14 @@
+[
+  {
+    "name": "rag_rrt_real_validation",
+    "version": "1.0.0"
+  },
+  {
+    "name": "rag_rrt_backend_py",
+    "version": "0.7.0"
+  },
+  {
+    "name": "rag_rrt_interfaces",
+    "version": "0.1.0"
+  }
+]

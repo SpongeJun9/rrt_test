@@ -1,0 +1,46 @@
+map:
+  width: 224
+  height: 224
+  clearance: 3
+
+planner:
+  step_len: 10.0
+  search_radius: 50.0
+  iter_max: 50000
+  iter_after_initial: 5000
+  goal_sample_rate: 0.0
+
+guided_sampler:
+  type: astar_corridor
+  sigma: 8.0
+  max_attempts: 50
+
+controller:
+  alpha_init: 0.5
+  alpha_min: 0.1
+  alpha_max: 0.8
+  window_size: 50
+  update_interval: 20
+  eta: 0.05
+  margin: 0.05
+  min_samples_to_update: 10
+  w_add: 0.2
+  w_progress: 1.0
+  w_collision: 1.5
+  w_improve: 2.0
+
+edge_validation:
+  parent_strategy: delay_cc
+  rewire_strategy: adaptive
+  adaptive_rewire:
+    budgets: [4, 8, 12, 20]
+    initial_budget: 12
+    opportunity_coverage_target: 0.90
+    solution_slack_ratio: 0.10
+    relevance_floor: 0.05
+    probe_interval: 16
+    probe_k: 1
+
+experiment:
+  num_runs: 30
+  seed: 0

@@ -1,0 +1,28 @@
+std_msgs/Header header
+
+string planner_name
+string backend_mode
+int32 seed
+bool planning_success
+
+float64 prior_generation_time
+float64 planner_solve_time
+float64 path_conversion_time
+float64 total_planning_time
+
+int64 first_solution_iter
+float64 first_solution_cost
+float64 final_cost
+int64 collision_checks
+int64 num_vertices
+float64 planned_path_length
+
+float64 initial_alpha
+float64 final_alpha
+float64 connectivity_score
+float64 bpc_consistency
+
+int64 fallback_checked
+int64 fallback_recoveries
+
+string status_message

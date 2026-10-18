@@ -1,0 +1,67 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Tool Properties
+    Name: Tool Properties
+Visualization Manager:
+  Class: ""
+  Global Options:
+    Background Color: 35; 35; 35
+    Fixed Frame: map
+    Frame Rate: 30
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 40
+    - Class: rviz_default_plugins/Map
+      Name: Static map
+      Enabled: true
+      Topic:
+        Value: /map
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Transient Local
+      Alpha: 0.7
+    - Class: rviz_default_plugins/TF
+      Name: Robot TF
+      Enabled: true
+    - Class: rviz_default_plugins/Path
+      Name: RAG single planned path
+      Enabled: true
+      Topic:
+        Value: /rag_rrt/validation/reference_path
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Transient Local
+      Color: 0; 255; 80
+      Line Style: Billboards
+      Line Width: 0.04
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic:
+        Value: /initialpose
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Value: /rag_rrt/goal_pose
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Name: Top view
+      Scale: 35
+      X: 0
+      Y: 0
+      Angle: 0
+Window Geometry:
+  Width: 1280
+  Height: 900

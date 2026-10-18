@@ -1,0 +1,9 @@
+geometry_msgs/PoseStamped start
+geometry_msgs/PoseStamped goal
+string planner_name
+int32 seed
+---
+bool success
+nav_msgs/Path path
+rag_rrt_interfaces/PlannerMetrics metrics
+string message

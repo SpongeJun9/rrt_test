@@ -1,0 +1,31 @@
+{
+  "geometry_unittest": {
+    "passed": 6,
+    "total": 6
+  },
+  "mock_ros_trial_flow": {
+    "passed": 15,
+    "total": 15
+  },
+  "actual_offline_planner_runs": {
+    "passed": 6,
+    "total": 6,
+    "methods": [
+      "rrt_star",
+      "irrt_star",
+      "rag_bpc_conn_init_rel_only_topk_fallback"
+    ],
+    "seed": 0,
+    "map_origin_yaw": [
+      0.0,
+      0.4
+    ],
+    "clearance_cells": 10
+  },
+  "ros_colcon_build": "not run: ROS unavailable",
+  "real_robot_execution": "not run",
+  "python_execution_environment": "3.12 / NumPy 2.3.5",
+  "python_3_10_syntax": "PASS",
+  "wheel_data_layout": "PASS",
+  "shell_syntax": "PASS"
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "package": "rag_rrt_backend_py",
+    "wheel_files": 57,
+    "status": "PASS"
+  },
+  {
+    "package": "rag_rrt_real_validation",
+    "wheel_files": 13,
+    "status": "PASS"
+  }
+]

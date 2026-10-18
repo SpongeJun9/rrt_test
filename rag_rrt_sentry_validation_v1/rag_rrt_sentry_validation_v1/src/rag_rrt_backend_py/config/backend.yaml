@@ -1,0 +1,67 @@
+planner_backend:
+  ros__parameters:
+    map_topic: /map
+    service_name: /rag_rrt/backend/compute_path
+
+    occupied_threshold: 50
+    unknown_is_occupied: true
+    path_spacing: 0.10
+
+    # trial.launch.py supplies the installed bundled algorithm directory.
+    # No researcher-specific project path is required.
+    algorithm_project_root: ""
+
+    # Shared planner parameters, expressed in legacy grid-cell units.
+    rrt_step_len_cells: 5.0
+    rrt_search_radius_cells: 15.0
+    rrt_iter_max: 3000
+    rrt_iter_after_initial: 300
+    rrt_clearance_cells: 2
+
+    # Informed RRT* sampling fallback budget.
+    irrt_max_informed_sample_attempts: 100
+
+    # Final RAG-RRT*-Rel configuration. These values match the frozen 2-D
+    # rag_bpc_conn_init_rel_only variant.
+    rag_prior_mode: coarse_valid
+    rag_prior_heuristic_type: euclidean
+    rag_guide_sigma_cells: 5.0
+    rag_guide_max_attempts: 50
+    rag_alpha_init: 0.5
+    rag_alpha_min: 0.1
+    rag_alpha_max: 0.8
+    rag_window_size: 30
+    rag_update_interval: 20
+    rag_eta: 0.08
+    rag_margin: 0.05
+    rag_min_samples_to_update: 8
+    rag_w_add: 0.2
+    rag_w_progress: 1.0
+    rag_w_collision: 1.5
+    rag_w_improve: 2.0
+    rag_stagnation_check_interval: 100
+    rag_stagnation_start_iter: 100
+    rag_stagnation_alpha_decay: 0.05
+    rag_best_path_corridor_radius_cells: 10.0
+    rag_min_consistency_samples: 8
+    rag_consistency_low_threshold: 0.35
+    rag_consistency_mid_threshold: 0.55
+    rag_consistency_high_threshold: 0.70
+    rag_connectivity_alpha_init_min: 0.30
+    rag_connectivity_alpha_init_max: 0.50
+
+    # RAG-RRT*-Rel-TopK-Fallback efficiency parameters.
+    rag_parent_check_top_k: 8
+    rag_rewire_check_top_k: 12
+    rag_parent_fallback_check_k: 4
+    rag_rewire_fallback_check_k: 6
+
+    # Static tree/prior visualization for RViz debugging. Disable for formal
+    # runtime measurements to avoid conversion and publication overhead.
+    publish_debug_markers: false
+    debug_marker_topic: /rag_rrt/debug_markers
+    debug_tree_line_width: 0.012
+    debug_prior_line_width: 0.035
+    debug_vertex_size: 0.035
+    debug_start_goal_size: 0.14
+    debug_marker_z: 0.035

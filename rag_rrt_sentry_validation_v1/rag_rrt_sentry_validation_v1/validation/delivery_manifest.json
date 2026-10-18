@@ -1,0 +1,417 @@
+[
+  {
+    "path": "README.md",
+    "sha256": "b80f7a017d44741a05afde97f88ee2c9473f024353764106aed0013cc9a1e10e",
+    "bytes": 1531
+  },
+  {
+    "path": "scripts/apply_trial_limits.py",
+    "sha256": "e5cd7467c58f7d6bc2b80c762c7afb257ab7fddbc70902335c349a43aa2c0a48",
+    "bytes": 2462
+  },
+  {
+    "path": "scripts/build.sh",
+    "sha256": "c9ba61fdd5c3350c000c14ec9ed0b2a8980618d6c1b32a2f9248f98ce9286069",
+    "bytes": 779
+  },
+  {
+    "path": "scripts/configure_trial.sh",
+    "sha256": "fabe389e8d36a46ab9bdb8b74115a010ae5c20b527e8fc12fcadbfea457e5820",
+    "bytes": 399
+  },
+  {
+    "path": "scripts/pack_results.py",
+    "sha256": "5b79b8c7f0bd38313e59f25f688d6b6850192ce2b1cb2c5d9556e7fe2b0005e7",
+    "bytes": 1113
+  },
+  {
+    "path": "scripts/run_trial.sh",
+    "sha256": "75af72720eb3e2137efc8e8e1f41e846ad13ff7a032e2753de050e043ba1f685",
+    "bytes": 3358
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/README.md",
+    "sha256": "1cdc2de63a1f7ddf3035b4a336b5f0d5997f2504b62672e0225b1530a58ee11c",
+    "bytes": 730
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/configs/default.yaml",
+    "sha256": "41bef2be680ec939807299775b09ea2e48de6db7e4781f093ee3354256b820af",
+    "bytes": 779
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/controllers/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/controllers/edge_budget_controller.py",
+    "sha256": "220826c67ae3075b08085384a169343c6305a101d0ad07bb32851a7f9241690f",
+    "bytes": 14490
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/controllers/reliability_controller.py",
+    "sha256": "9c58d0fd19832756cf48064256cc6e89b62b66362d706f348c612785731f13a5",
+    "bytes": 24996
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/envs/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/envs/complex_maps_2d.py",
+    "sha256": "44ec5399fde7dcadfd7ec2af89bcc61723b219bd1e99d2f9fbc9abe70ca216a8",
+    "bytes": 62977
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/envs/grid_map_2d.py",
+    "sha256": "2f82825990ee0e1dd982bd7134360e43011ac843f32b309e761bb93ba9db59f9",
+    "bytes": 3412
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/experiments/compare_representative_baselines.py",
+    "sha256": "76532cd732ff3078a866fa40c2b0e13414bfb62bd69f87e31eb14471c1d1dc9f",
+    "bytes": 93165
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/learned_prior/__init__.py",
+    "sha256": "07b85a97318c9f14931b980dca4fbc3836ea019c0fbfcefb6026b2364ce71efc",
+    "bytes": 574
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/learned_prior/dataset.py",
+    "sha256": "9a49e1f9acc65aac98cbffec687896a0e568204c9aea520835a412298d4c58d4",
+    "bytes": 4720
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/learned_prior/heatmap_to_path.py",
+    "sha256": "b9dbc497aa2dd95369776b435423a04ba45d5466035646f350eb898fae553f14",
+    "bytes": 6757
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/learned_prior/infer.py",
+    "sha256": "79599b3d315fba5ab9634876f30cc55679e3e5eb88d25ea9b9e6cec6cfc0cb30",
+    "bytes": 3299
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/learned_prior/model.py",
+    "sha256": "51c6eec84b0b7c4636b36a4e4d5a151f2e7e5b51947313b8c8ba26a4b408d292",
+    "bytes": 3137
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/learned_prior/train.py",
+    "sha256": "c17fc9562e0f40185ec41d0a5628be00bc86c7e489013b15c87f0050f29ec092",
+    "bytes": 7068
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/adaptive_guided_rrt_star_2d.py",
+    "sha256": "9f43ef725db0f7389df0918f646a7460ddab2722e95d558d6a87c6f9c4d8d838",
+    "bytes": 9647
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/fixed_guided_rrt_star_2d.py",
+    "sha256": "f7bd29fb4bb9e18c5e08b696202ca25308dc6dedd7e4bfac69dcaa5ab61926e1",
+    "bytes": 6380
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/fixed_guided_rrt_star_2d_former.py",
+    "sha256": "0e8d1c732555f7124693f0012f1940b9a59751f32cf76c4fc5bd59e3a6240f82",
+    "bytes": 5469
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/informed_rrt_star_2d.py",
+    "sha256": "5dd6b9be3a2db4703a59e596a975bda2e89915951ebe2129f3c6c5f04084f8fe",
+    "bytes": 5354
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/neural_guided_rrt_star_2d.py",
+    "sha256": "b5c8820cd18a74d80ba67c0626e458545216048ebfd82a635020318c9218fe46",
+    "bytes": 3266
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/official_pointnet_guided_rrt_star_2d.py",
+    "sha256": "877b603ef39fe9b62fe37d3856eb424484ae24990248035cf279b9a89b44c81b",
+    "bytes": 20886
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/reliability_guided_rrt_star_2d.py",
+    "sha256": "8ad315e75dafb88949ed6afd8b26cba5346b1c852e8733bbcb600b3c4a786809",
+    "bytes": 43319
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/rrt_base_2d.py",
+    "sha256": "ede609a143026c907f2dfe2db0fa96326a4416cf6ae8a2cd719ffe4f551221d6",
+    "bytes": 25079
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/rrt_connect_2d.py",
+    "sha256": "d5c4fae473288eb2d961e0f13a8aa8bc02229ad7f1941414437f0cd10e0d9e1b",
+    "bytes": 8272
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/planners/rrt_star_2d.py",
+    "sha256": "45c4c60680a6cd8cdb0b29eb9670f76e40c32cd342e42479f802177c3502b078",
+    "bytes": 3069
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/priors/__init__.py",
+    "sha256": "3a1ed47a352af148568c98f181722a7e2175f9053aa09fe748f65891a2b244bf",
+    "bytes": 787
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/priors/astar_prior.py",
+    "sha256": "d5e079c0b4f1ee13dff791a9efac648b562bd0f88596d25be1a0d724417b56c3",
+    "bytes": 4372
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/priors/base.py",
+    "sha256": "83cbc4dc68dc6a40f5d578447b7e327e2a60665667209277da9baeb338b39a87",
+    "bytes": 2087
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/priors/learned_prior.py",
+    "sha256": "525950890f41400c86d945a6a3bf59fd314f646870ed0f719b336d2f25c8c397",
+    "bytes": 8002
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/priors/prior_factory.py",
+    "sha256": "bc99d4f61ad1eb367be5c1e68b8bfa9478a26a251520d9fb0b7b22983283eab8",
+    "bytes": 1400
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/priors/prior_result.py",
+    "sha256": "03bff18e0b2a71590d17b62a2fc04fce11215197a7aab5be0f23a2d1bee2a6fc",
+    "bytes": 3337
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/priors/synthetic_failure_prior.py",
+    "sha256": "c9540ec15969c4006edab7522b81557273002dff6a037bffb9d64cb0eb2f0309",
+    "bytes": 13396
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/samplers/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/samplers/astar_corridor_sampler.py",
+    "sha256": "b917e8a218fbd1e3a4b70b9b29a977a84c63ab8e05d488dbd03cca91b86aeb21",
+    "bytes": 10731
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/samplers/heatmap_guided_sampler.py",
+    "sha256": "d9faa9cf3345dfef7abbd37014892065756dcd074f8a5ba5c87c3a81068c70d2",
+    "bytes": 9426
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/utils/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/utils/astar.py",
+    "sha256": "92aa5d24279db7788ccb6991d233d0a459e644e6d1dfd791bd321feffeed7d53",
+    "bytes": 5010
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/utils/complex_prior_generation.py",
+    "sha256": "8032be1f0a3a1a9530d100f883475f3d8199db6cc0488ef1c04d2d22d2b86ef7",
+    "bytes": 3094
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/utils/guidance_connectivity.py",
+    "sha256": "0ed1fdc17805bdd08a60305ada9b0b4e1ffa6218353fb0f4efb4130eba264e02",
+    "bytes": 8477
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/utils/metrics.py",
+    "sha256": "3d8f19649a5e2d7390252945f8f63aa46caf71aa17a11b014cdc93e06f186d4a",
+    "bytes": 1408
+  },
+  {
+    "path": "src/rag_rrt_backend_py/algorithm/utils/visualization.py",
+    "sha256": "64e7a4ce95b2bb691c95f9f50904a60d848001cb3ca88f7529e4cb2a32baf25a",
+    "bytes": 4002
+  },
+  {
+    "path": "src/rag_rrt_backend_py/config/backend.yaml",
+    "sha256": "bd76a42df228a0fea3937f9972994132e70c6ae63f5ac0096adb397d260f6d81",
+    "bytes": 2158
+  },
+  {
+    "path": "src/rag_rrt_backend_py/package.xml",
+    "sha256": "8548e02da6b44c02d751c3c079e56bd0bd81bbb9e6556ae4e8562840f719281e",
+    "bytes": 782
+  },
+  {
+    "path": "src/rag_rrt_backend_py/rag_rrt_backend_py/__init__.py",
+    "sha256": "5891c951adb40dee8d72b32774c971f7faf1ac8a0e8c20e0fa66501db72aa387",
+    "bytes": 685
+  },
+  {
+    "path": "src/rag_rrt_backend_py/rag_rrt_backend_py/backend_node.py",
+    "sha256": "3c78188b8bf12678633b0cd02301fcca5ab1c7032dd57d80221db2e003d9d0fb",
+    "bytes": 39089
+  },
+  {
+    "path": "src/rag_rrt_backend_py/rag_rrt_backend_py/execution_grid_map.py",
+    "sha256": "a549950ccba5c4112d5120bd284bf4de64b023fcd3a494392be49a3a3e1b3303",
+    "bytes": 694
+  },
+  {
+    "path": "src/rag_rrt_backend_py/rag_rrt_backend_py/final_path_validation.py",
+    "sha256": "e377783aa197466c5b672449539963861162ef0d819112fc5962c54ecc6c0ea1",
+    "bytes": 2423
+  },
+  {
+    "path": "src/rag_rrt_backend_py/rag_rrt_backend_py/occupancy_grid_map.py",
+    "sha256": "1f1f5e65bb5252fc444571cfd26801bca90f4c7d6375de312a39060e8015003d",
+    "bytes": 12376
+  },
+  {
+    "path": "src/rag_rrt_backend_py/rag_rrt_backend_py/rrt_star_adapter.py",
+    "sha256": "847c822a8d44a8f60ce9d377e6f66e5845b04ce17725b0dc566300bceedba628",
+    "bytes": 28887
+  },
+  {
+    "path": "src/rag_rrt_backend_py/resource/rag_rrt_backend_py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "src/rag_rrt_backend_py/setup.cfg",
+    "sha256": "3c64f45bb3a34d7ca4b75a4056edaa09b874c5de0c76c99316033925623343e8",
+    "bytes": 105
+  },
+  {
+    "path": "src/rag_rrt_backend_py/setup.py",
+    "sha256": "9281eeaa9c9e4e2a2a77456b8be989d1a6b784812b09df20e3c12663b79bf2ae",
+    "bytes": 993
+  },
+  {
+    "path": "src/rag_rrt_backend_py/test/test_occupancy_grid_map.py",
+    "sha256": "db2cd33bedf2809f3b412cd37859f1f573c658f66f1bef41d1dafb0a332dc169",
+    "bytes": 6610
+  },
+  {
+    "path": "src/rag_rrt_backend_py/test/test_rrt_star_adapter.py",
+    "sha256": "bd77d349809691e15db5780a5f4270d81f18655830851447c0bca42496df1a13",
+    "bytes": 5381
+  },
+  {
+    "path": "src/rag_rrt_interfaces/CMakeLists.txt",
+    "sha256": "cbae7c07f07f4c02a675987cefb5fda2d928040ca7087faf2a27c582cb11e713",
+    "bytes": 561
+  },
+  {
+    "path": "src/rag_rrt_interfaces/msg/PlannerMetrics.msg",
+    "sha256": "f572bc978df236dca8c54fd4d3aac097cf0af66e1e04e8e449c5e6f42be7daad",
+    "bytes": 523
+  },
+  {
+    "path": "src/rag_rrt_interfaces/package.xml",
+    "sha256": "436d74b219e9fd1c875e89982f64e091bcc75ac463308cae0709524296cb82bf",
+    "bytes": 708
+  },
+  {
+    "path": "src/rag_rrt_interfaces/srv/PlanPath.srv",
+    "sha256": "f638459b4acfb2a9170533ed7022963d84d47d0ba8b5608549c26fb2413fe866",
+    "bytes": 187
+  },
+  {
+    "path": "src/rag_rrt_real_validation/config/site.yaml",
+    "sha256": "3fef4f8d2260305aa0445ac7b789933e75aa7740bd946f9b13ae1deb57cb051c",
+    "bytes": 1222
+  },
+  {
+    "path": "src/rag_rrt_real_validation/launch/trial.launch.py",
+    "sha256": "12ac79c6e942a394a01a84cfa6f0c6e2e486c451019ebe330fbc2de5738cdb01",
+    "bytes": 3505
+  },
+  {
+    "path": "src/rag_rrt_real_validation/package.xml",
+    "sha256": "b0af840329c480753c1bef1b94e8f0613df7fccc2e92f63187d315bd19d13897",
+    "bytes": 1087
+  },
+  {
+    "path": "src/rag_rrt_real_validation/rag_rrt_real_validation/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "src/rag_rrt_real_validation/rag_rrt_real_validation/geometry.py",
+    "sha256": "c40c1aea7f4aaf40643db954f1ab708e417a479a616f8b7b0c3ba6502d2e9c70",
+    "bytes": 2854
+  },
+  {
+    "path": "src/rag_rrt_real_validation/rag_rrt_real_validation/runner.py",
+    "sha256": "1edf151c9a9aeee2674c594adc587c9c4dc3c660308f71746fcab1174f295c0e",
+    "bytes": 29287
+  },
+  {
+    "path": "src/rag_rrt_real_validation/resource/rag_rrt_real_validation",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  {
+    "path": "src/rag_rrt_real_validation/setup.cfg",
+    "sha256": "109bd609ed9e27c35697a72bc8d8bc7590a7b0ee7c55b311a1cc15881a631de7",
+    "bytes": 115
+  },
+  {
+    "path": "src/rag_rrt_real_validation/setup.py",
+    "sha256": "d23efb43b6d740b18028d4828ac583706bd948456091c6746c3e487502b4d38c",
+    "bytes": 827
+  },
+  {
+    "path": "validation/algorithm_source_manifest.json",
+    "sha256": "8692ff481a732a2534269e0d57283a8e17046a03e835795aed8a978928ba6538",
+    "bytes": 8809
+  },
+  {
+    "path": "validation/installation_check.json",
+    "sha256": "a9b3a2c3b75406dbf0c2e6d34ac3f4d1bd382f3dcf79a3ff4946eec00ceed1a4",
+    "bytes": 187
+  },
+  {
+    "path": "validation/offline_algorithm_check.py",
+    "sha256": "5a61dec4bdddc9cbcb33e4064b0bc1d3f48241f572ea93e92e0eade3e5090810",
+    "bytes": 1812
+  },
+  {
+    "path": "validation/package_manifest.json",
+    "sha256": "e4b920a6c06d6548929e8c7e44e70f255093c6264065f3b02cbf7a81d575b59f",
+    "bytes": 205
+  },
+  {
+    "path": "validation/test_geometry.py",
+    "sha256": "84adecf1d060218ce4022c67817c4fce8c1ed6148bb1491a0b7c9e513537c3b0",
+    "bytes": 2663
+  },
+  {
+    "path": "validation/test_trial_flow.py",
+    "sha256": "2e546c2e529683e63eaf1cd5e5df28cf9684697348a9965d71cb9b70a09a64bb",
+    "bytes": 10697
+  },
+  {
+    "path": "validation/validation_summary.json",
+    "sha256": "32d74a12bbdacf4efa53eb2d8276899e1d46ff163357172f33da8ea6e8668013",
+    "bytes": 638
+  },
+  {
+    "path": "使用说明.md",
+    "sha256": "bd4c45cf27f217b4f7c9ee651acad75d01b795a84f7711dbf7f943076e353825",
+    "bytes": 12230
+  },
+  {
+    "path": "验证记录.md",
+    "sha256": "b276c745c5f1a2b82527accb6b8b0626cba48f648aeab1f9d8cca0a3e8ea0373",
+    "bytes": 2466
+  }
+]

@@ -1,0 +1,47 @@
+# Defaults inferred from the provided sentry source; live checks verify them.
+map_topic: /map
+odom_topic: /odometry
+cmd_vel_topic: /cmd_vel
+map_frame: map
+base_frame: base_footprint
+follow_path_action: /follow_path
+controller_node: /controller_server
+velocity_smoother_node: /velocity_smoother
+costmap_nodes: [/global_costmap/global_costmap, /local_costmap/local_costmap]
+controller_id: FollowPath
+goal_checker_id: general_goal_checker
+progress_checker_id: ""
+robot_length_m: 0.6
+robot_width_m: 0.6
+body_margin_m: 0.05
+max_linear_speed_mps: 0.3
+map_already_inflated: false
+resample_spacing_m: 0.05
+max_path_length_m: 20.0
+start_tolerance_m: 0.2
+endpoint_tolerance_m: 0.2
+yaw_tolerance_rad: 3.141592653589793
+minimum_motion_m: 0.05
+tf_max_age_sec: 1.0
+sensor_max_age_sec: 1.0
+localization_jump_m: 0.5
+ready_timeout_sec: 20.0
+planning_timeout_sec: 120.0
+execution_timeout_sec: 120.0
+cancel_timeout_sec: 2.0
+stop_timeout_sec: 3.0
+publish_zero_on_abort: true
+method: rag_bpc_conn_init_rel_only_topk_fallback
+seed: 0
+rrt_iter_max: 3000
+rrt_iter_after_initial: 300
+robot_center_offset_x_m: 0.0
+robot_center_offset_y_m: 0.0
+
+goal_from_click: false
+goal_from_pose: false
+goal_pose_topic: /rag_rrt/goal_pose
+goal_point_topic: /clicked_point
+click_timeout_sec: 120.0
+
+spin_topic: /cmd_spin
