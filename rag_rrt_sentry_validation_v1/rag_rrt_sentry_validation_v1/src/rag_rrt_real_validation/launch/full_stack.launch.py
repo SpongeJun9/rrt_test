@@ -37,7 +37,7 @@ def setup(context):
         raise RuntimeError('Map image does not exist: '+str(image))
     site = yaml.safe_load(site_path.read_text(encoding='utf-8'))
     site.update(goal_from_pose=True, goal_from_click=False, ready_timeout_sec=120.0,
-                keep_visualization_after_trial=True)
+                keep_visualization_after_trial=True, multiple_manual_goals=True)
     original = nav_path.read_text(encoding='utf-8')
     profile = value('nav_profile')
     nav, site = prepare_stack(yaml.safe_load(original.replace('<robot_namespace>', '')), site, profile)

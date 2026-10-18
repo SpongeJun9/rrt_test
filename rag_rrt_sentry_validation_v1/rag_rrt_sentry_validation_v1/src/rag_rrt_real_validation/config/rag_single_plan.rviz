@@ -416,20 +416,20 @@ Visualization Manager:
     - Alpha: 1
       Buffer Length: 1
       Class: rviz_default_plugins/Path
-      Color: 0; 255; 80
+      Color: 255; 110; 0
       Enabled: true
       Head Diameter: 0.019999999552965164
       Head Length: 0.019999999552965164
       Length: 0.30000001192092896
       Line Style: Billboards
-      Line Width: 0.04
+      Line Width: 0.14
       Name: RAG single planned path
       Offset:
         X: 0
         Y: 0
-        Z: 0
+        Z: 0.08
       Pose Color: 255; 85; 255
-      Pose Style: Arrows
+      Pose Style: None
       Radius: 0.029999999329447746
       Shaft Diameter: 0.004999999888241291
       Shaft Length: 0.019999999552965164

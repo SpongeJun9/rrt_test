@@ -69,6 +69,8 @@ class Trial(Node):
             if not self.has_parameter(name):
                 self.declare_parameter(name,value)
         self.cfg = {k:self.get_parameter(k).value for k in defaults}
+        if self.cfg['multiple_manual_goals'] and self.cfg['run_dir']:
+            raise TrialFailure('multiple_manual_goals requires output_dir and separate per-goal result directories')
         output = Path(self.cfg['output_dir']).expanduser().resolve(); output.mkdir(parents=True,exist_ok=True)
         if self.cfg['run_dir']:
             self.directory=Path(self.cfg['run_dir']).expanduser().resolve()
@@ -83,6 +85,7 @@ class Trial(Node):
                           collision_evidence='not independently measured', software='rag_rrt_sentry_validation_v1')
         self.goal_point = None
         self.goal_pose = None
+        self.next_goal_pose = None
         self.state['runtime_versions']=dict(python=platform.python_version(),numpy=importlib.metadata.version('numpy'),
             ros_distro=os.environ.get('ROS_DISTRO',''),ros_domain_id=os.environ.get('ROS_DOMAIN_ID','0'),
             rmw_implementation=os.environ.get('RMW_IMPLEMENTATION','default'))
@@ -112,11 +115,38 @@ class Trial(Node):
 
     def on_goal_pose(self,msg):
         if self.state['status']!='RUNNING':
-            self.get_logger().info('This trial has ended; Ctrl+C and restart for a new goal. No automatic replanning.')
+            if self.cfg['multiple_manual_goals'] and self.can_accept_next_goal():
+                if self.next_goal_pose is None:
+                    self.next_goal_pose=msg
+                    self.get_logger().info('New manual Goal received. Starting a separate trial with one RAG request.')
+            else:
+                self.get_logger().info('New goal is blocked until the previous motion is confirmed stopped. Ctrl+C to restart if needed.')
             return
         # Freeze the first goal. Later clicks never replace or replan this trial.
         if self.goal_pose is None:
             self.goal_pose = msg
+        else:
+            self.get_logger().info('Current goal is being processed; extra click ignored. Set the next goal after this trial ends.')
+
+    def can_accept_next_goal(self):
+        if self.motion_active or self.state['status']=='INTERRUPTED':
+            return False
+        abort=self.state.get('abort_stop')
+        if abort is not None:
+            return bool(abort['stop_observed'])
+        if self.own_goal is not None:
+            return not self.own_goal.accepted or (self.action_terminal and self.state.get('stop_observed',False))
+        return self.pending_goal is None
+
+    def clear_previous_visualization(self):
+        from visualization_msgs.msg import Marker, MarkerArray
+        path=RosPath();path.header.frame_id=self.cfg['map_frame'];path.header.stamp=self.get_clock().now().to_msg()
+        self.path_pub.publish(path)
+        latched=QoSProfile(depth=1,reliability=ReliabilityPolicy.RELIABLE,
+                           durability=DurabilityPolicy.TRANSIENT_LOCAL)
+        self.status_pub=self.create_publisher(MarkerArray,'/rag_rrt/validation/status',latched)
+        clear=Marker();clear.action=Marker.DELETEALL
+        message=MarkerArray();message.markers=[clear];self.status_pub.publish(message)
 
     def on_map(self,msg):
         shape=(msg.info.width,msg.info.height,msg.info.resolution,message_to_ordereddict(msg.info.origin))
@@ -139,6 +169,13 @@ class Trial(Node):
         if not all(math.isfinite(v) for v in values):
             raise TrialFailure('nonfinite localization pose')
         return values,transform.header.stamp
+
+    def localization_ready(self):
+        try:
+            self.pose()
+            return True
+        except Exception:
+            return False
 
     def spin(self,guard=True):
         if not rclpy.ok():
@@ -375,6 +412,7 @@ class Trial(Node):
             self.cfg['goal_x']=float(self.goal_point.point.x);self.cfg['goal_y']=float(self.goal_point.point.y)
             if not all(math.isfinite(self.cfg[k]) for k in ['goal_x','goal_y']):raise TrialFailure('clicked goal is not finite')
             self.cfg['goal_set']=True
+        self.wait(self.localization_ready,self.cfg['ready_timeout_sec'],'fresh localization TF')
         start,stamp=self.pose()
         if self.map.header.frame_id!=self.cfg['map_frame']:raise TrialFailure('map frame differs from configured map_frame')
         if self.map.info.resolution<=0 or len(self.map.data)!=self.map.info.width*self.map.info.height:raise TrialFailure('invalid map metadata')
@@ -489,7 +527,9 @@ class Trial(Node):
 
         latched=QoSProfile(depth=1,reliability=ReliabilityPolicy.RELIABLE,
                            durability=DurabilityPolicy.TRANSIENT_LOCAL)
-        publisher=self.create_publisher(MarkerArray,'/rag_rrt/validation/status',latched)
+        if not hasattr(self,'status_pub'):
+            self.status_pub=self.create_publisher(MarkerArray,'/rag_rrt/validation/status',latched)
+        publisher=self.status_pub
         start=self.state.get('actual_start',{'x':0.,'y':0.})
         success=self.state['status'] in ('CHECK_PASS','PLANNED_ONLY','EXECUTION_PASS')
         text=Marker();text.header.frame_id=self.cfg['map_frame']
@@ -500,7 +540,9 @@ class Trial(Node):
         reason=self.state.get('failure_reason','')
         if 'Start is not valid' in reason:
             reason='START BLOCKED: align the real pose / move to clear space'
-        text.text=self.state['status']+' - trial ended\n'+'\n'.join(textwrap.wrap(reason,72))+'\nCtrl+C and restart for a new trial'
+        repeat=self.cfg['multiple_manual_goals'] and self.can_accept_next_goal()
+        hint='Ready: set another 2D Goal Pose' if repeat else 'Ctrl+C and restart for a new trial'
+        text.text=self.state['status']+' - trial ended\n'+'\n'.join(textwrap.wrap(reason,72))+'\n'+hint
         markers=MarkerArray();markers.markers=[text]
         if self.map is not None and 'actual_start' in self.state:
             box=Marker();box.header.frame_id=self.cfg['map_frame'];box.ns=text.ns;box.id=1
@@ -510,7 +552,7 @@ class Trial(Node):
             box.points=[Point(x=float(start['x']+dx*half),y=float(start['y']+dy*half),z=.05)
                         for dx,dy in [(-1,-1),(1,-1),(1,1),(-1,1),(-1,-1)]]
             markers.markers.append(box)
-        self.get_logger().info('Trial ended. RViz/localization remain running for inspection; no further plan or motion is requested. Ctrl+C and restart for a new trial.')
+        self.get_logger().info('Trial ended. RViz/localization remain running. '+hint+'. No automatic retry.')
         last_publish=0.
         try:
             while rclpy.ok():
@@ -518,33 +560,52 @@ class Trial(Node):
                     for marker in markers.markers:marker.header.stamp=self.get_clock().now().to_msg()
                     publisher.publish(markers);last_publish=time.monotonic()
                 rclpy.spin_once(self,timeout_sec=.2)
+                if repeat and self.next_goal_pose is not None:
+                    return self.next_goal_pose
         except KeyboardInterrupt:
             pass
+
+
+def run_one_trial(node):
+    code=2
+    try:
+        node.run()
+        code=0 if node.state['status'] in ('PLANNED_ONLY','CHECK_PASS','EXECUTION_PASS') else 2
+    except (KeyboardInterrupt,Exception) as exc:
+        node.state.update(status='INTERRUPTED' if isinstance(exc,KeyboardInterrupt) else 'FAIL',failure_reason=str(exc),failed_stage=node.state['stage'])
+        if node.motion_active:
+            try:node.stop_and_cancel()
+            except Exception as stop_exc:node.state['abort_stop_error']=str(stop_exc)
+        node.get_logger().error(str(exc) or 'interrupted')
+    finally:
+        node.finish()
+    return code
 
 
 def main(args=None):
     rclpy.init(args=args,signal_handler_options=SignalHandlerOptions.NO)
     def interrupted(signum,frame):raise KeyboardInterrupt()
     old_term=signal.signal(signal.SIGTERM,interrupted)
-    node=None;code=2
+    node=None;code=2;next_goal=None
     try:
-        node=Trial();node.run()
-        code=0 if node.state['status'] in ('PLANNED_ONLY','CHECK_PASS','EXECUTION_PASS') else 2
-    except (KeyboardInterrupt,Exception) as exc:
-        if node is not None:
-            node.state.update(status='INTERRUPTED' if isinstance(exc,KeyboardInterrupt) else 'FAIL',failure_reason=str(exc),failed_stage=node.state['stage'])
-            if node.motion_active:
-                try:node.stop_and_cancel()
-                except Exception as stop_exc:node.state['abort_stop_error']=str(stop_exc)
-            node.get_logger().error(str(exc) or 'interrupted')
-        else:
-            print('Trial initialization failed: '+str(exc),file=sys.stderr)
+        while rclpy.ok():
+            node=Trial()
+            if next_goal is not None:
+                node.clear_previous_visualization()
+                node.on_goal_pose(next_goal)
+            code=run_one_trial(node)
+            next_goal=node.hold_visualization()
+            node.destroy_node();node=None
+            if next_goal is None:
+                break
+    except KeyboardInterrupt:
+        pass
+    except Exception as exc:
+        print('Trial session failed: '+str(exc),file=sys.stderr)
+        code=2
     finally:
         if node is not None:
-            try:
-                node.finish()
-                node.hold_visualization()
-            finally:node.destroy_node()
+            node.destroy_node()
         if rclpy.ok():rclpy.shutdown()
         signal.signal(signal.SIGTERM,old_term)
     raise SystemExit(code)

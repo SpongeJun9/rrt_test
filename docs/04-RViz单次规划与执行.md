@@ -27,15 +27,15 @@ bash scripts/start_trial.sh world:=rmul2026
 2. 等待终端提示 RViz 目标输入。默认等候目标 120 秒；定位调试较久时在 site.yaml 增大 `click_timeout_sec`，然后重启。
 3. 在 `Global Costmap` / `Local Costmap` 的彩色叠加图上观察可通行区，使用专用 RViz 的 **2D Goal Pose** 点击、拖动、释放。固定坐标系保持 `map`；显示代价图不改变 Goal 的坐标系。
 4. 程序冻结首个目标，获取当前定位起点，调用一次 RAG 服务，校验并加密返回折线，再发送一次 FollowPath。
-5. 完成/失败后保留 RViz、定位和原导航节点，不再自动规划或执行。`RAG trial status` 显示任务状态；失败时显示红色文字和起点附近的净空示意框。新任务先 Ctrl+C 结束整组，再重新运行命令。执行期间或任务结束后再次点击不会触发第二次规划。
+5. 完成/失败后保留 RViz、定位和原导航节点。出现 `Ready: set another 2D Goal Pose` 后，可以直接手动给下一个目标；每次人工目标创建独立任务，只调用一次 RAG，并另存结果目录。执行期间额外点击会被忽略，不排队、不替换当前目标。取消后停止未确认时不会接受新任务。
 
 工具必须是本包 `rviz_default_plugins/SetGoal`，话题 `/rag_rrt/goal_pose`。原 `nav2_rviz_plugins/GoalTool` 外观相近，却会发起原导航 Action，不能用于本试验。
 
-`RAG single planned path` 显示绿色参考路径；黑白底图、彩色代价图和绿色路径可同时显示。当前 RAG 读取原始 `/map` 并按原配置车体半径做自身碰撞检查；代价图是原 Nav2 感知/膨胀结果的叠加显示，不代表 RAG 改为优化 Nav2 的膨胀代价值。
+`RAG single planned path` 显示亮橙色参考路径（RGB 255/110/0），线宽 0.14 m，显示高度偏移 0.08 m；这是 RViz 显示设置，控制器收到的路径坐标不变。黑白底图、彩色代价图和橙色路径可同时显示。当前 RAG 读取原始 `/map` 并按原配置车体半径做自身碰撞检查；代价图是原 Nav2 感知/膨胀结果的叠加显示，不代表 RAG 改为优化 Nav2 的膨胀代价值。
 
 界面基于原工程 RViz 配置保留地图、点云、RobotModel、局部 Path 和 Lookahead Point。原 Navigation 2 面板已移除，GoalTool 替换为 SetGoal，避免误发带自动重规划的导航 Action。全局 Path 改为订阅本次 RAG 参考路径。显示参考图的风格无需重新建图；真实障碍布局仍由自己的地图和传感器决定。
 
-若终端显示 `Start is not valid ... (4 cells)`，是 RAG 拒绝净空不足的起点，不是 RViz 进程自身退出。保持 RViz 后可检查起点与真实机器人是否对齐、周围是否确有障碍。状态框只作位置示意，不移动起点、不清除地图障碍、不自动降低半径。当前任务已结束，需要人工修正后开启新任务。
+若终端显示 `Start is not valid ... (4 cells)`，是 RAG 拒绝净空不足的起点，不是 RViz 进程自身退出。保持 RViz 后可检查起点与真实机器人是否对齐、周围是否确有障碍。状态框只作位置示意，不移动起点、不清除地图障碍、不自动降低半径。人工修正定位/实际车位后，等待 Ready 提示，再手动给 Goal 即可开始新任务。局部膨胀改为 0.2 m 不会绕过此项 RAG 净空检查。
 
 若日志出现 `Exec format error`，先停止本次启动并在根目录重新运行 `bash scripts/build_workspace.sh`。2026-10-18 实机发现两个 RAG 入口曾为空文件，导致后端和目标接收节点均未启动；现已加入构建后校验与 launch 启动前检查。等待终端出现 `waiting on /rag_rrt/goal_pose` 后再给目标；若超过目标等待时间，需要重启本次任务。
 
@@ -68,4 +68,4 @@ bash scripts/run_trial.sh --rviz-goal --method rag --seed 0
 
 ## 结果目录
 
-默认 `~/rag_rrt_real_results/stack_*/`，启动配置 `navigation.yaml`、`site.yaml` 和输入路径 `inputs.yaml` 位于该层；任务数据在其下独立目录。绿色 Path 是送入控制器的参考路径，并非实际行驶轨迹。实际轨迹在 CSV 中。
+默认 `~/rag_rrt_real_results/stack_*/`，启动配置 `navigation.yaml`、`site.yaml` 和输入路径 `inputs.yaml` 位于该层；每次手动目标的数据在其下独立目录，不覆盖之前结果。新目标开始时会清除上一条路径和状态标记。橙色 Path 是送入控制器的参考路径，并非实际行驶轨迹。实际轨迹在 CSV 中。

@@ -64,6 +64,7 @@ def fixture(folder,execute=False):
     trial.cfg=yaml.safe_load((ROOT/'src/rag_rrt_real_validation/config/site.yaml').read_text())
     trial.cfg.update(goal_x=1.,goal_y=0.,goal_yaw=0.,goal_set=True,execute=execute,check_only=False)
     trial.state=dict(stage='init',status='RUNNING');trial.directory=folder
+    trial.goal_pose=None;trial.next_goal_pose=None
     trial.map=NS(header=NS(frame_id='map'),info=NS(resolution=.05,width=20,height=20),data=[0]*400)
     trial.map_hash='frozen';trial.frozen_map_hash=None;trial.odom=NS(twist=NS(twist=Twist()))
     trial.odom_received=time.monotonic();trial.cmd=None;trial.started=time.monotonic()
@@ -109,6 +110,41 @@ class TrialFlowTests(unittest.TestCase):
         t=fixture(self.folder);t.run()
         self.assertEqual(t.state['status'],'PLANNED_ONLY');self.assertEqual(t.goals,[])
         self.assertTrue((self.folder/'planner_response.json').exists())
+
+    def test_failed_goal_can_be_followed_by_one_explicit_manual_trial(self):
+        first=fixture(self.folder);first.cfg['multiple_manual_goals']=True
+        first.response.success=False
+        runner.run_one_trial(first)
+        self.assertEqual(first.state['status'],'FAIL')
+        self.assertEqual(len(first.planning_calls),1)
+        msg=PoseStamped();msg.pose.position.x=1.
+        first.on_goal_pose(msg)
+        self.assertIs(first.next_goal_pose,msg)
+        another=self.folder/'another';another.mkdir()
+        second=fixture(another);second.cfg.update(goal_from_pose=True,goal_set=False)
+        second.on_goal_pose(first.next_goal_pose);second.run()
+        self.assertEqual(len(second.planning_calls),1)
+        self.assertEqual(second.state['status'],'PLANNED_ONLY')
+        self.assertTrue((self.folder/'planner_response.json').exists())
+        self.assertTrue((another/'planner_response.json').exists())
+
+    def test_busy_click_is_not_queued_as_a_future_trial(self):
+        t=fixture(self.folder);t.cfg['multiple_manual_goals']=True
+        first=PoseStamped();second=PoseStamped();second.pose.position.x=9.
+        t.on_goal_pose(first);t.on_goal_pose(second)
+        self.assertIs(t.goal_pose,first);self.assertIsNone(t.next_goal_pose)
+
+    def test_unconfirmed_abort_blocks_next_manual_trial(self):
+        t=fixture(self.folder);t.cfg['multiple_manual_goals']=True
+        t.state.update(status='FAIL',abort_stop={'stop_observed':False})
+        t.on_goal_pose(PoseStamped())
+        self.assertIsNone(t.next_goal_pose)
+
+    def test_success_accepts_next_manual_goal_after_confirmed_stop(self):
+        t=fixture(self.folder,True);t.cfg['multiple_manual_goals']=True;t.run()
+        msg=PoseStamped();t.on_goal_pose(msg)
+        self.assertIs(t.next_goal_pose,msg)
+        self.assertEqual(len(t.planning_calls),1);self.assertEqual(len(t.goals),1)
 
     def test_execute_humble_and_complete_target(self):
         t=fixture(self.folder,True);t.run()
