@@ -69,3 +69,7 @@ bash scripts/run_trial.sh --rviz-goal --method rag --seed 0
 ## 结果目录
 
 默认 `~/rag_rrt_real_results/stack_*/`，启动配置 `navigation.yaml`、`site.yaml` 和输入路径 `inputs.yaml` 位于该层；每次手动目标的数据在其下独立目录，不覆盖之前结果。新目标开始时会清除上一条路径和状态标记。橙色 Path 是送入控制器的参考路径，并非实际行驶轨迹。实际轨迹在 CSV 中。
+
+每次给目标后，终端以 `[RAG]` 打印起点和终点的 map 坐标（米）、yaw（弧度及角度）、方法/种子、地图分辨率、RAG 净空半径/格数，以及从运行节点读回的全局/局部 `inflation_radius`、`cost_scaling_factor`、车体半径和 footprint padding。收到规划返回后，打印总规划时间、先验生成/RAG 求解/路径转换时间（毫秒）、服务请求等待时间、路径长度（米）、点数、树节点数、碰撞检查数和首解迭代。
+
+同一任务目录保存 `planning_summary.txt` 和 `planning_summary.json`：收到规划结果时写入，任务结束再更新状态。未取得的数据以 `N/A`（JSON 为 null）表示，失败不会生成虚构的路径长度。总规划时间取后端计时，包含先验生成，不包括等待人工 Goal 和控制器行驶；RPC 等待时间另列。

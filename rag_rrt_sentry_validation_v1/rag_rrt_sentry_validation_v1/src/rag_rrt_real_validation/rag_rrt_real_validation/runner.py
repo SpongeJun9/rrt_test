@@ -34,6 +34,8 @@ import yaml
 from rag_rrt_interfaces.srv import PlanPath
 from .geometry import METHODS, planning_radius, footprint_covers, yaw_of, wrap_yaw, resample, distance_to_path
 from .stack_config import navigation_parameter_names
+from .reporting import (INFLATION_PARAMETERS, all_lines, build_summary, collect_metrics,
+                        input_lines, metric_lines, navigation_lines, reference_line)
 
 
 class TrialFailure(RuntimeError):
@@ -112,6 +114,15 @@ class Trial(Node):
 
     def save_json(self,name,value):
         (self.directory/name).write_text(json.dumps(clean(value),ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
+
+    def log_planning_lines(self, formatter):
+        for line in formatter(build_summary(self.cfg,self.state)):
+            self.get_logger().info('[RAG] '+line)
+
+    def save_planning_summary(self):
+        summary=build_summary(self.cfg,self.state)
+        self.save_json('planning_summary.json',summary)
+        (self.directory/'planning_summary.txt').write_text('\n'.join(all_lines(summary))+'\n',encoding='utf-8')
 
     def on_goal_pose(self,msg):
         if self.state['status']!='RUNNING':
@@ -254,7 +265,10 @@ class Trial(Node):
     def navigation_checks(self):
         issues=[];report={}
         controller=self.cfg['controller_id'];goal=self.cfg['goal_checker_id']
-        requests=navigation_parameter_names(self.cfg)
+        required_requests=navigation_parameter_names(self.cfg)
+        requests={node:list(names) for node,names in required_requests.items()}
+        for node in self.cfg['costmap_nodes']:
+            requests[node].extend(INFLATION_PARAMETERS)
         for node,names in requests.items():
             try:
                 report[node]=self.read_params(node,names)
@@ -269,7 +283,7 @@ class Trial(Node):
         if self.cfg['navigation_profile']=='original':
             expected=json.loads(self.cfg['expected_navigation_parameters'])
             if set(expected)!=set(requests):issues.append('original navigation parameter snapshot is missing nodes')
-            for node,names in requests.items():
+            for node,names in required_requests.items():
                 for name in names:
                     if name not in expected.get(node,{}):
                         issues.append(node+'.'+name+': missing original parameter snapshot')
@@ -412,6 +426,8 @@ class Trial(Node):
             self.cfg['goal_x']=float(self.goal_point.point.x);self.cfg['goal_y']=float(self.goal_point.point.y)
             if not all(math.isfinite(self.cfg[k]) for k in ['goal_x','goal_y']):raise TrialFailure('clicked goal is not finite')
             self.cfg['goal_set']=True
+        if self.cfg['goal_set']:
+            self.state['actual_goal']=dict(x=self.cfg['goal_x'],y=self.cfg['goal_y'],yaw=self.cfg['goal_yaw'])
         self.wait(self.localization_ready,self.cfg['ready_timeout_sec'],'fresh localization TF')
         start,stamp=self.pose()
         if self.map.header.frame_id!=self.cfg['map_frame']:raise TrialFailure('map frame differs from configured map_frame')
@@ -420,10 +436,13 @@ class Trial(Node):
         self.save_json('map.json',message_to_ordereddict(self.map))
         self.state['map_sha256']=self.map_hash;self.state['actual_start']={'x':start[0],'y':start[1],'yaw':start[2]}
         self.state['planner_radius_m']=radius
+        self.state['map_resolution_m']=float(self.map.info.resolution)
         self.state['effective_clearance_cells']=max(2,math.ceil(radius/self.map.info.resolution))
         self.state['collision_check_policy']='uniform conservative grid-cell crossing, shared by all three methods; square clearance neighborhood'
         self.state['ready_pose_ros_sec']=stamp.sec+stamp.nanosec/1e9
+        self.log_planning_lines(input_lines)
         issues=self.navigation_checks()
+        self.log_planning_lines(navigation_lines)
         if self.cfg['check_only']:
             self.state.update(status='CHECK_PASS' if not issues else 'CHECK_FAIL',stage='completed');return
         if self.cfg['execute']:
@@ -437,9 +456,19 @@ class Trial(Node):
         request=PlanPath.Request();request.start=self.make_pose(start)
         request.goal=self.make_pose((self.cfg['goal_x'],self.cfg['goal_y'],self.cfg['goal_yaw']))
         request.planner_name=self.cfg['method'];request.seed=self.cfg['seed']
-        started=time.monotonic();response=self.future(self.client.call_async(request),self.cfg['planning_timeout_sec'],'planning')
-        self.state['request_wall_time_sec']=time.monotonic()-started
+        self.state['planner_request_attempts']=1
+        started=time.monotonic()
+        try:
+            response=self.future(self.client.call_async(request),self.cfg['planning_timeout_sec'],'planning')
+        finally:
+            self.state['request_wall_time_sec']=time.monotonic()-started
+        self.state['planning_metrics']=collect_metrics(response.metrics)
+        self.state['backend_success']=bool(response.success)
+        self.state['backend_message']=response.message
+        self.state['backend_path_pose_count']=len(response.path.poses)
+        self.log_planning_lines(metric_lines)
         self.save_json('planner_response.json',message_to_ordereddict(response))
+        self.save_planning_summary()
         if not response.success:raise TrialFailure('planning failed: '+response.message)
         if response.metrics.planner_name!=self.cfg['method'] or response.metrics.seed!=self.cfg['seed']:
             raise TrialFailure('planner response method/seed do not match this request')
@@ -458,6 +487,9 @@ class Trial(Node):
             reference.poses.append(self.make_pose((p[0],p[1],yaw)))
         self.save_json('reference_path.json',message_to_ordereddict(reference));self.path_pub.publish(reference)
         self.state['reference_length_m']=length
+        self.state['reference_pose_count']=len(reference.poses)
+        self.get_logger().info('[RAG] '+reference_line(build_summary(self.cfg,self.state)))
+        self.save_planning_summary()
         if not self.cfg['execute']:
             self.state.update(status='PLANNED_ONLY',stage='completed');return
         current,_=self.pose()
@@ -513,6 +545,14 @@ class Trial(Node):
 
     def finish(self):
         self.save_json('metadata.json',self.state);self.save_json('feedback.json',self.feedback)
+        self.save_planning_summary()
+        if 'actual_start' not in self.state:
+            self.log_planning_lines(input_lines)
+        if not self.state.get('planning_metrics'):
+            self.log_planning_lines(metric_lines)
+            if not self.state.get('planner_request_attempts'):
+                self.get_logger().info('[RAG] 本次尚未调用 RAG，规划时间与路径长度为 N/A。')
+        self.get_logger().info('[RAG] 规划摘要: '+str(self.directory/'planning_summary.txt'))
         if self.cmd is not None:self.save_json('last_command.json',message_to_ordereddict(self.cmd))
         with (self.directory/'estimated_trajectory.csv').open('w',newline='') as stream:
             writer=csv.DictWriter(stream,fieldnames=['wall_elapsed_sec','ros_sec','x','y','yaw']);writer.writeheader();writer.writerows(self.trajectory)
