@@ -11,6 +11,15 @@ def required_radius(length, width, margin):
     return math.hypot(length / 2 + margin, width / 2 + margin)
 
 
+def planning_radius(config):
+    radius = float(config.get('planner_radius_m', -1.0))
+    if radius == -1.0:
+        return required_radius(config['robot_length_m'], config['robot_width_m'], config['body_margin_m'])
+    if not math.isfinite(radius) or radius <= 0:
+        raise ValueError('planner_radius_m must be positive, or -1 for body dimensions')
+    return radius
+
+
 def footprint_covers(footprint, radius, length, width, margin):
     # Require a convex polygon covering all expanded body corners, or a circle.
     parsed = ast.literal_eval(footprint) if footprint.strip() else []

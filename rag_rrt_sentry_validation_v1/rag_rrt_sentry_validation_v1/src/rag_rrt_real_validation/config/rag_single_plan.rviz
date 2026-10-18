@@ -23,7 +23,63 @@ Visualization Manager:
         Depth: 1
         Reliability Policy: Reliable
         Durability Policy: Transient Local
-      Alpha: 0.7
+      Alpha: 0.5
+      Color Scheme: map
+      Draw Behind: true
+    - Class: rviz_default_plugins/Map
+      Name: Global Costmap
+      Enabled: true
+      Color Scheme: costmap
+      Alpha: 0.35
+      Draw Behind: false
+      Use Timestamp: false
+      Topic:
+        Value: /global_costmap/costmap
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Transient Local
+      Update Topic:
+        Value: /global_costmap/costmap_updates
+        Depth: 5
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+    - Class: rviz_default_plugins/Map
+      Name: Local Costmap
+      Enabled: true
+      Color Scheme: costmap
+      Alpha: 0.65
+      Draw Behind: false
+      Use Timestamp: false
+      Topic:
+        Value: /local_costmap/costmap
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Transient Local
+      Update Topic:
+        Value: /local_costmap/costmap_updates
+        Depth: 5
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+    - Class: rviz_default_plugins/Polygon
+      Name: Global Footprint
+      Enabled: true
+      Alpha: 1
+      Color: 255; 160; 0
+      Topic:
+        Value: /global_costmap/published_footprint
+        Depth: 5
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+    - Class: rviz_default_plugins/Polygon
+      Name: Local Footprint
+      Enabled: true
+      Alpha: 1
+      Color: 25; 255; 0
+      Topic:
+        Value: /local_costmap/published_footprint
+        Depth: 5
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
     - Class: rviz_default_plugins/TF
       Name: Robot TF
       Enabled: true

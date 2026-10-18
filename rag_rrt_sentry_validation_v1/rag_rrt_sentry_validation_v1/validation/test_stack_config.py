@@ -9,7 +9,8 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT/'src/rag_rrt_real_validation'))
-from rag_rrt_real_validation.stack_config import prepare_navigation
+from rag_rrt_real_validation.stack_config import prepare_navigation, prepare_stack
+from rag_rrt_real_validation.geometry import planning_radius
 
 
 class StackConfigTests(unittest.TestCase):
@@ -44,6 +45,36 @@ class StackConfigTests(unittest.TestCase):
             site = dict(self.site); site[key] = bad
             with self.assertRaises(ValueError):
                 prepare_navigation(self.nav, site)
+
+    def test_original_profile_preserves_every_navigation_parameter(self):
+        before, site_before = copy.deepcopy(self.nav), copy.deepcopy(self.site)
+        nav, settings = prepare_stack(self.nav, self.site)
+        self.assertEqual(nav, before)
+        self.assertEqual(self.nav, before)
+        self.assertEqual(self.site, site_before)
+        self.assertEqual(settings['navigation_profile'], 'original')
+        self.assertEqual(settings['base_frame'], 'gimbal_yaw_fake')
+        self.assertAlmostEqual(planning_radius(settings), .2)
+        self.assertAlmostEqual(settings['max_linear_speed_mps'], math.hypot(2.5, 2.5))
+        self.assertAlmostEqual(settings['endpoint_tolerance_m'], .15)
+        saved = json.loads(settings['expected_navigation_parameters'])
+        self.assertEqual(saved['/controller_server']['FollowPath.v_linear_max'], 8.)
+        self.assertEqual(nav['fake_vel_transform']['ros__parameters']['init_spin_speed'], 3.14)
+
+    def test_original_polygon_radius_is_derived_without_changing_polygon(self):
+        self.nav['global_costmap']['global_costmap']['ros__parameters'].update(
+            footprint='[[0.3,0.4],[0.3,-0.4],[-0.3,-0.4],[-0.3,0.4]]', footprint_padding=.02)
+        before = copy.deepcopy(self.nav)
+        nav, settings = prepare_stack(self.nav, self.site, 'original')
+        self.assertEqual(nav, before)
+        self.assertAlmostEqual(planning_radius(settings), .52)
+
+    def test_validation_profile_keeps_explicit_trial_limits(self):
+        nav, settings = prepare_stack(self.nav, self.site, 'validation')
+        self.assertEqual(nav, prepare_navigation(self.nav, self.site))
+        self.assertAlmostEqual(planning_radius(settings), math.hypot(.35, .35))
+        with self.assertRaisesRegex(ValueError, 'nav_profile'):
+            prepare_stack(self.nav, self.site, 'unknown')
 
 
 if __name__ == '__main__':

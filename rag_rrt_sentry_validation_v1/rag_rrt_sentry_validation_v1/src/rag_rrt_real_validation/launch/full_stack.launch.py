@@ -10,7 +10,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.descriptions import ParameterFile
-from rag_rrt_real_validation.stack_config import prepare_navigation
+from rag_rrt_real_validation.stack_config import prepare_stack
 from rag_rrt_real_validation.entry_points import ENTRY_POINTS, verify_entry_points
 
 
@@ -38,7 +38,8 @@ def setup(context):
     site = yaml.safe_load(site_path.read_text(encoding='utf-8'))
     site.update(goal_from_pose=True, goal_from_click=False, ready_timeout_sec=120.0)
     original = nav_path.read_text(encoding='utf-8')
-    nav = prepare_navigation(yaml.safe_load(original.replace('<robot_namespace>', '')), site)
+    profile = value('nav_profile')
+    nav, site = prepare_stack(yaml.safe_load(original.replace('<robot_namespace>', '')), site, profile)
     nav['map_server']['ros__parameters']['yaml_filename'] = str(map_path)
     # Persist exact generated configuration for this startup, not in original files.
     output = Path(value('output_dir')).expanduser().resolve()
@@ -48,7 +49,7 @@ def setup(context):
     generated_nav.write_text(yaml.safe_dump(nav, allow_unicode=True), encoding='utf-8')
     generated_site.write_text(yaml.safe_dump(site, allow_unicode=True), encoding='utf-8')
     (session/'inputs.yaml').write_text(yaml.safe_dump(dict(map=str(map_path), prior_pcd_file=str(pcd_path),
-        params_file=str(nav_path), serial_config=str(serial_path)), allow_unicode=True), encoding='utf-8')
+        params_file=str(nav_path), serial_config=str(serial_path), nav_profile=profile), allow_unicode=True), encoding='utf-8')
     params = ParameterFile(str(generated_nav), allow_substs=True)
     def node(package, executable, name, **kwargs):
         return Node(package=package, executable=executable, name=name, output='screen',
@@ -91,12 +92,13 @@ def setup(context):
             method=value('method'), seed=value('seed'), execute='true', output_dir=str(session))),
     ]
     print('RAG full stack configuration and results: '+str(session), flush=True)
+    print('Navigation profile: '+profile+'; RAG clearance radius: '+str(site['planner_radius_m'])+' m', flush=True)
     return actions
 
 
 def generate_launch_description():
     arguments = dict(world='', map='', prior_pcd_file='', params_file='', site_config='',
-                     serial_config='', use_robot_state_pub='true',
+                     serial_config='', use_robot_state_pub='true', nav_profile='original',
                      method='rag_bpc_conn_init_rel_only_topk_fallback', seed='0',
                      output_dir=str(Path.home()/'rag_rrt_real_results'))
     return LaunchDescription([DeclareLaunchArgument(k, default_value=v) for k,v in arguments.items()]

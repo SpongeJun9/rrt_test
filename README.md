@@ -4,6 +4,8 @@
 
 原驱动、重定位、地形感知、控制、速度处理与串口全部保留。比赛决策与 Nav2 导航行为树不参与验证。
 
+完整启动默认 `nav_profile:=original`，直接保留 `src/pb2025_sentry_nav-main/pb2025_nav_bringup/config/reality/nav2_params.yaml` 的算法与参数，只接入一次 RAG 全局规划。控制速度、PID、前瞻、代价地图外廓、膨胀和速度变换均不再被验证配置覆盖；RAG 净空半径从原全局代价地图外廓读取。此前的低速/矩形外廓验证设置可显式选择 `nav_profile:=validation`。
+
 ## 按顺序阅读
 
 1. [环境安装与编译](docs/01-环境安装与编译.md)

@@ -1,5 +1,6 @@
 """Exercise real trial control flow with fake ROS transport; not a ROS integration test."""
 import importlib
+import array
 import json
 import math
 from pathlib import Path
@@ -219,5 +220,39 @@ class TrialFlowTests(unittest.TestCase):
         self.assertTrue(runner.Trial.stopped(t))
         t.odom.twist.twist.linear.x=math.nan;self.assertFalse(runner.Trial.stopped(t))
         t.odom.twist.twist.linear.x=0.;t.pose_history[0]=(now-.4,(.1,0.,0.));self.assertFalse(runner.Trial.stopped(t))
+
+    def original_fixture(self, execute=True):
+        from rag_rrt_real_validation.stack_config import prepare_stack
+        t=fixture(self.folder,execute)
+        nav_path=ROOT.parents[1]/'src/pb2025_sentry_nav-main/pb2025_nav_bringup/config/reality/nav2_params.yaml'
+        _,t.cfg=prepare_stack(yaml.safe_load(nav_path.read_text(encoding='utf-8')),t.cfg)
+        t.parameters=json.loads(t.cfg['expected_navigation_parameters'])
+        for key in ('max_velocity','min_velocity'):
+            t.parameters['/velocity_smoother'][key]=array.array('d',t.parameters['/velocity_smoother'][key])
+        # Match the default footprint representation exposed by Nav2.
+        for name in t.cfg['costmap_nodes']:t.parameters[name]['footprint']='[]'
+        return t
+
+    def test_original_parameters_execute_once_without_validation_overrides(self):
+        t=self.original_fixture();t.run()
+        self.assertEqual(t.state['status'],'EXECUTION_PASS')
+        self.assertEqual(t.state['preflight_issues'],[])
+        self.assertEqual(t.state['effective_clearance_cells'],4)
+        self.assertEqual(len(t.planning_calls),1);self.assertEqual(len(t.goals),1)
+        self.assertEqual(t.parameters['/controller_server']['FollowPath.v_linear_max'],8.)
+
+    def test_original_runtime_parameter_drift_blocks_before_planning(self):
+        t=self.original_fixture()
+        t.parameters['/global_costmap/global_costmap']['robot_radius']=.1
+        with self.assertRaisesRegex(runner.TrialFailure,'differs from original'):t.run()
+        self.assertEqual(t.planning_calls,[]);self.assertEqual(t.goals,[])
+
+    def test_original_spin_field_does_not_fake_physical_motion_or_stop(self):
+        t=self.original_fixture(False);now=time.monotonic()
+        t.pose_history=[(now-.4,(0.,0.,0.)),(now-.2,(0.,0.,0.)),(now,(0.,0.,0.))]
+        t.cmd=Twist();t.cmd.angular.z=3.14
+        self.assertTrue(runner.Trial.stopped(t))
+        t.odom.twist.twist.angular.z=.5
+        self.assertFalse(runner.Trial.stopped(t))
 
 if __name__=='__main__':unittest.main()

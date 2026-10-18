@@ -32,7 +32,8 @@ from ament_index_python.packages import get_package_share_directory
 import yaml
 
 from rag_rrt_interfaces.srv import PlanPath
-from .geometry import METHODS, required_radius, footprint_covers, yaw_of, wrap_yaw, resample, distance_to_path
+from .geometry import METHODS, planning_radius, footprint_covers, yaw_of, wrap_yaw, resample, distance_to_path
+from .stack_config import navigation_parameter_names
 
 
 class TrialFailure(RuntimeError):
@@ -213,12 +214,7 @@ class Trial(Node):
     def navigation_checks(self):
         issues=[];report={}
         controller=self.cfg['controller_id'];goal=self.cfg['goal_checker_id']
-        requests={self.cfg['controller_node']:['use_sim_time','controller_plugins','goal_checker_plugins',
-                  controller+'.v_linear_max',controller+'.v_linear_min',controller+'.min_approach_linear_velocity',controller+'.enable_rotation',
-                  goal+'.xy_goal_tolerance',goal+'.yaw_goal_tolerance',goal+'.stateful'],
-                  self.cfg['velocity_smoother_node']:['use_sim_time','max_velocity','min_velocity']}
-        for node in self.cfg['costmap_nodes']:
-            requests[node]=['use_sim_time','robot_radius','footprint','robot_base_frame','global_frame']
+        requests=navigation_parameter_names(self.cfg)
         for node,names in requests.items():
             try:
                 report[node]=self.read_params(node,names)
@@ -230,6 +226,27 @@ class Trial(Node):
         cp=report.get(self.cfg['controller_node'],{})
         if controller not in (cp.get('controller_plugins') or []):issues.append('controller_id not configured')
         if goal not in (cp.get('goal_checker_plugins') or []):issues.append('goal_checker_id not configured')
+        if self.cfg['navigation_profile']=='original':
+            expected=json.loads(self.cfg['expected_navigation_parameters'])
+            if set(expected)!=set(requests):issues.append('original navigation parameter snapshot is missing nodes')
+            for node,names in requests.items():
+                for name in names:
+                    if name not in expected.get(node,{}):
+                        issues.append(node+'.'+name+': missing original parameter snapshot')
+                        continue
+                    actual=report.get(node,{}).get(name)
+                    wanted=expected[node][name]
+                    if name=='footprint':
+                        # Nav2 may expose an unspecified polygon as either empty string or [].
+                        actual=actual or '';wanted=wanted or ''
+                        if actual.strip()=='[]':actual=''
+                        if wanted.strip()=='[]':wanted=''
+                    # ROS double[] values are array.array; YAML sequences are lists.
+                    if clean(actual)!=clean(wanted):issues.append(node+'.'+name+': differs from original navigation YAML')
+            self.state['navigation_parameters']=report;self.state['preflight_issues']=issues
+            self.state['footprint_source']='original navigation costmap configuration; physical dimensions not inferred'
+            self.save_json('navigation_parameters.json',report)
+            return issues
         if cp.get(controller+'.enable_rotation') is not False:issues.append('controller rotation must be disabled for this serial protocol')
         cap=self.cfg['max_linear_speed_mps']
         for key in [controller+'.v_linear_max',controller+'.v_linear_min',controller+'.min_approach_linear_velocity']:
@@ -271,7 +288,11 @@ class Trial(Node):
         if math.hypot(twist.linear.x,twist.linear.y)>0.03 or abs(twist.angular.z)>0.08:
             return False
         # A stale nonzero command is not evidence of stop; fresh odometry is required above.
-        if self.cmd is not None and (not all(math.isfinite(v) for v in [self.cmd.linear.x,self.cmd.linear.y,self.cmd.angular.z]) or math.hypot(self.cmd.linear.x,self.cmd.linear.y)>0.03 or abs(self.cmd.angular.z)>0.08):
+        # Original fake_vel adds init_spin_speed to angular.z. The current serial
+        # navigation packet sends only planar x/y; measured odometry above must
+        # still confirm no actual rotation, for both profiles.
+        check_command_yaw=self.cfg['navigation_profile']!='original'
+        if self.cmd is not None and (not all(math.isfinite(v) for v in [self.cmd.linear.x,self.cmd.linear.y,self.cmd.angular.z]) or math.hypot(self.cmd.linear.x,self.cmd.linear.y)>0.03 or (check_command_yaw and abs(self.cmd.angular.z)>0.08)):
             return False
         return True
 
@@ -317,7 +338,8 @@ class Trial(Node):
 
     def run(self):
         self.state['stage']='preflight'
-        required_radius(self.cfg['robot_length_m'],self.cfg['robot_width_m'],self.cfg['body_margin_m'])
+        radius=planning_radius(self.cfg)
+        if self.cfg['navigation_profile'] not in ('original','validation'):raise TrialFailure('invalid navigation_profile')
         for key in ['max_linear_speed_mps','resample_spacing_m','max_path_length_m','start_tolerance_m',
                     'endpoint_tolerance_m','minimum_motion_m','tf_max_age_sec','sensor_max_age_sec','localization_jump_m',
                     'click_timeout_sec','ready_timeout_sec','planning_timeout_sec','execution_timeout_sec','cancel_timeout_sec','stop_timeout_sec']:
@@ -356,7 +378,8 @@ class Trial(Node):
         self.frozen_map_hash=self.map_hash
         self.save_json('map.json',message_to_ordereddict(self.map))
         self.state['map_sha256']=self.map_hash;self.state['actual_start']={'x':start[0],'y':start[1],'yaw':start[2]}
-        self.state['effective_clearance_cells']=max(2,math.ceil(required_radius(self.cfg['robot_length_m'],self.cfg['robot_width_m'],self.cfg['body_margin_m'])/self.map.info.resolution))
+        self.state['planner_radius_m']=radius
+        self.state['effective_clearance_cells']=max(2,math.ceil(radius/self.map.info.resolution))
         self.state['collision_check_policy']='uniform conservative grid-cell crossing, shared by all three methods; square clearance neighborhood'
         self.state['ready_pose_ros_sec']=stamp.sec+stamp.nanosec/1e9
         issues=self.navigation_checks()

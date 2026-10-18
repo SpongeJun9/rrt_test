@@ -1,4 +1,9 @@
 # Defaults inferred from the provided sentry source; live checks verify them.
+# Standalone trials keep explicit body checks. Full stack defaults to the original
+# navigation YAML and derives its RAG radius / validation bounds from that file.
+navigation_profile: validation
+planner_radius_m: -1.0
+expected_navigation_parameters: '{}'
 map_topic: /map
 odom_topic: /odometry
 cmd_vel_topic: /cmd_vel

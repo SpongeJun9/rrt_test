@@ -11,6 +11,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from rag_rrt_real_validation.entry_points import ENTRY_POINTS, verify_entry_points
+from rag_rrt_real_validation.geometry import planning_radius
 
 
 def generate_launch_description():
@@ -19,8 +20,7 @@ def generate_launch_description():
     default = Path(get_package_share_directory('rag_rrt_real_validation')) / 'config/site.yaml'
     site_path = Path(os.environ.get('RAG_TRIAL_CONFIG', str(default))).expanduser()
     site = yaml.safe_load(site_path.read_text())
-    radius = math.hypot(site['robot_length_m']/2+site['body_margin_m'],
-                        site['robot_width_m']/2+site['body_margin_m'])
+    radius = planning_radius(site)
     if site.get('map_already_inflated', False):
         raise ValueError('Provide a raw static OccupancyGrid; this package applies its own clearance.')
     # Nonzero offsets require selecting a matching footprint-center TF frame.
