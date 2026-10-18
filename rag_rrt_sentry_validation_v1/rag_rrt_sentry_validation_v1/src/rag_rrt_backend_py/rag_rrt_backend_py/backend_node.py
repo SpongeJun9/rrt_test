@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import replace
-from pathlib import Path
+from pathlib import Path as FilePath
 from ament_index_python.packages import get_package_share_directory
 import time
 from typing import Iterable, Optional
@@ -53,7 +53,7 @@ class PlannerBackendNode(Node):
         self.declare_parameter("unknown_is_occupied", True)
         self.declare_parameter("path_spacing", 0.10)
 
-        self.declare_parameter("algorithm_project_root", str(Path(get_package_share_directory("rag_rrt_backend_py")) / "algorithm"))
+        self.declare_parameter("algorithm_project_root", str(FilePath(get_package_share_directory("rag_rrt_backend_py")) / "algorithm"))
         self.declare_parameter("robot_radius_m", 0.5)
         self.declare_parameter("rrt_step_len_cells", 5.0)
         self.declare_parameter("rrt_search_radius_cells", 15.0)

@@ -58,7 +58,7 @@ def setup(context):
     if value('use_robot_state_pub').lower() == 'true':
         robot_share = Path(get_package_share_directory('pb2025_robot_description'))
         actions.append(include(robot_share/'launch/robot_description_launch.py',
-            dict(namespace='', use_sim_time='false', use_rviz='False',
+            dict(namespace='', robot_name='pb2025_sentry_robot', use_sim_time='false', use_rviz='False',
                  params_file=str(robot_share/'params/robot_description.yaml'))))
     actions += [
         Node(package='core_serial', executable='core_serial_node', name='core_serial_node',
