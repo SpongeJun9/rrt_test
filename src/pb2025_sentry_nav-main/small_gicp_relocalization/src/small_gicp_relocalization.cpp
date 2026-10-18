@@ -74,6 +74,8 @@ SmallGicpRelocalizationNode::SmallGicpRelocalizationNode(const rclcpp::NodeOptio
   tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_);
   tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
+  global_map_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(
+    "relocalization/global_map", rclcpp::QoS(1).reliable().transient_local());
 
   loadGlobalMap(prior_pcd_file_);
 
@@ -132,6 +134,12 @@ void SmallGicpRelocalizationNode::loadGlobalMap(const std::string & file_name)
     }
   }
   pcl::transformPointCloud(*global_map_, *global_map_, odom_to_lidar_odom);
+  // Publish the same transformed target used by registration, for RViz alignment.
+  sensor_msgs::msg::PointCloud2 message;
+  pcl::toROSMsg(*global_map_, message);
+  message.header.frame_id = map_frame_;
+  message.header.stamp = this->now();
+  global_map_pub_->publish(message);
 }
 
 void SmallGicpRelocalizationNode::registeredPcdCallback(

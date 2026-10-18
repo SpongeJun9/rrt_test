@@ -2,7 +2,7 @@ import math
 import os
 from pathlib import Path
 import yaml
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_prefix, get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, EmitEvent, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
@@ -10,9 +10,11 @@ from launch.events import Shutdown
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+from rag_rrt_real_validation.entry_points import ENTRY_POINTS, verify_entry_points
 
 
 def generate_launch_description():
+    verify_entry_points({name: get_package_prefix(name) for name in ENTRY_POINTS})
     # RAG_TRIAL_CONFIG permits one explicit local site file; no device paths embedded.
     default = Path(get_package_share_directory('rag_rrt_real_validation')) / 'config/site.yaml'
     site_path = Path(os.environ.get('RAG_TRIAL_CONFIG', str(default))).expanduser()

@@ -13,4 +13,6 @@ fi
 cd "$validation_dir"
 /usr/bin/colcon build --symlink-install --event-handlers console_direct+ \
   --cmake-args -DPython3_EXECUTABLE=/usr/bin/python3 -DPYTHON_EXECUTABLE=/usr/bin/python3
+source "$validation_dir/install/setup.bash"
+/usr/bin/python3 "$validation_dir/scripts/verify_entry_points.py" --repair --import-check
 echo '编译结束。此步骤没有启动机器人或发送运动指令。'

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import tempfile
 import yaml
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_prefix, get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, OpaqueFunction, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -11,9 +11,11 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.descriptions import ParameterFile
 from rag_rrt_real_validation.stack_config import prepare_navigation
+from rag_rrt_real_validation.entry_points import ENTRY_POINTS, verify_entry_points
 
 
 def setup(context):
+    verify_entry_points({name: get_package_prefix(name) for name in ENTRY_POINTS})
     value = lambda name: LaunchConfiguration(name).perform(context)
     nav_share = Path(get_package_share_directory('pb2025_nav_bringup'))
     own_share = Path(get_package_share_directory('rag_rrt_real_validation'))

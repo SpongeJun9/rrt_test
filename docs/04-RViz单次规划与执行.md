@@ -19,13 +19,15 @@ bash scripts/start_trial.sh world:=rmul2026
 
 统一入口启动原雷达、Point-LIO、重定位、模型 TF、地图、障碍感知、控制、速度平滑、速度变换、串口、RAG 后端及专用 RViz。不启动比赛决策、bt_navigator 或实时全局 SLAM。保留 planner_server 只为提供原全局代价地图及参数检查，没有请求端调用其 Theta*。
 
-1. 保持车体静止，观察第 3 份指南的地图与定位对齐。
+1. 保持车体静止，用 **2D Pose Estimate** 给出当前位置/朝向，观察第 3 份指南的蓝色 PCD 与黄色实时点云对齐。黑白栅格地图仍会正常显示。
 2. 等待终端提示 RViz 目标输入。默认等候目标 120 秒；定位调试较久时在 site.yaml 增大 `click_timeout_sec`，然后重启。
 3. 使用专用 RViz 的 **2D Goal Pose**：在可通行区域点击、拖动、释放。
 4. 程序冻结首个目标，获取当前定位起点，调用一次 RAG 服务，校验并加密返回折线，再发送一次 FollowPath。
 5. 完成/失败后启动组退出，新任务重新运行命令。执行期间再次点击不会换目标、不会触发第二次规划。
 
 工具必须是本包 `rviz_default_plugins/SetGoal`，话题 `/rag_rrt/goal_pose`。原 `nav2_rviz_plugins/GoalTool` 外观相近，却会发起原导航 Action，不能用于本试验。
+
+若日志出现 `Exec format error`，先停止本次启动并在根目录重新运行 `bash scripts/build_workspace.sh`。2026-10-18 实机发现两个 RAG 入口曾为空文件，导致后端和目标接收节点均未启动；现已加入构建后校验与 launch 启动前检查。等待终端出现 `waiting on /rag_rrt/goal_pose` 后再给目标；若超过目标等待时间，需要重启本次任务。
 
 地图变化、执行异常、定位丢失等按原验证程序退出/取消，不自动重规划、不换算法、不换种子。Ctrl+C 尝试取消本次 FollowPath；若提示 `STOP NOT CONFIRMED`，使用原遥控接管/急停。
 
