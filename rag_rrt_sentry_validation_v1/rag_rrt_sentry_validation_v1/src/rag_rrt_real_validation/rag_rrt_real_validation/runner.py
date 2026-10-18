@@ -111,6 +111,9 @@ class Trial(Node):
         (self.directory/name).write_text(json.dumps(clean(value),ensure_ascii=False,indent=2,allow_nan=False),encoding='utf-8')
 
     def on_goal_pose(self,msg):
+        if self.state['status']!='RUNNING':
+            self.get_logger().info('This trial has ended; Ctrl+C and restart for a new goal. No automatic replanning.')
+            return
         # Freeze the first goal. Later clicks never replace or replan this trial.
         if self.goal_pose is None:
             self.goal_pose = msg
@@ -477,6 +480,47 @@ class Trial(Node):
             writer=csv.DictWriter(stream,fieldnames=['wall_elapsed_sec','ros_sec','x','y','yaw']);writer.writeheader();writer.writerows(self.trajectory)
         self.get_logger().info('RESULT: '+str(self.directory)+' status='+self.state['status'])
 
+    def hold_visualization(self):
+        if not self.cfg['keep_visualization_after_trial'] or self.state['status']=='INTERRUPTED':
+            return
+        from geometry_msgs.msg import Point
+        from visualization_msgs.msg import Marker, MarkerArray
+        import textwrap
+
+        latched=QoSProfile(depth=1,reliability=ReliabilityPolicy.RELIABLE,
+                           durability=DurabilityPolicy.TRANSIENT_LOCAL)
+        publisher=self.create_publisher(MarkerArray,'/rag_rrt/validation/status',latched)
+        start=self.state.get('actual_start',{'x':0.,'y':0.})
+        success=self.state['status'] in ('CHECK_PASS','PLANNED_ONLY','EXECUTION_PASS')
+        text=Marker();text.header.frame_id=self.cfg['map_frame']
+        text.ns='rag_trial_status';text.id=0;text.type=Marker.TEXT_VIEW_FACING;text.action=Marker.ADD
+        text.pose.position.x=float(start['x']);text.pose.position.y=float(start['y']);text.pose.position.z=1.0
+        text.pose.orientation.w=1.;text.scale.z=.20;text.color.a=1.
+        text.color.r=0.1 if success else 1.;text.color.g=1. if success else .2;text.color.b=.1
+        reason=self.state.get('failure_reason','')
+        if 'Start is not valid' in reason:
+            reason='START BLOCKED: align the real pose / move to clear space'
+        text.text=self.state['status']+' - trial ended\n'+'\n'.join(textwrap.wrap(reason,72))+'\nCtrl+C and restart for a new trial'
+        markers=MarkerArray();markers.markers=[text]
+        if self.map is not None and 'actual_start' in self.state:
+            box=Marker();box.header.frame_id=self.cfg['map_frame'];box.ns=text.ns;box.id=1
+            box.type=Marker.LINE_STRIP;box.action=Marker.ADD;box.pose.orientation.w=1.
+            box.scale.x=.025;box.color=text.color
+            half=(self.state.get('effective_clearance_cells',2)+.5)*self.map.info.resolution
+            box.points=[Point(x=float(start['x']+dx*half),y=float(start['y']+dy*half),z=.05)
+                        for dx,dy in [(-1,-1),(1,-1),(1,1),(-1,1),(-1,-1)]]
+            markers.markers.append(box)
+        self.get_logger().info('Trial ended. RViz/localization remain running for inspection; no further plan or motion is requested. Ctrl+C and restart for a new trial.')
+        last_publish=0.
+        try:
+            while rclpy.ok():
+                if time.monotonic()-last_publish>1.:
+                    for marker in markers.markers:marker.header.stamp=self.get_clock().now().to_msg()
+                    publisher.publish(markers);last_publish=time.monotonic()
+                rclpy.spin_once(self,timeout_sec=.2)
+        except KeyboardInterrupt:
+            pass
+
 
 def main(args=None):
     rclpy.init(args=args,signal_handler_options=SignalHandlerOptions.NO)
@@ -497,7 +541,9 @@ def main(args=None):
             print('Trial initialization failed: '+str(exc),file=sys.stderr)
     finally:
         if node is not None:
-            try:node.finish()
+            try:
+                node.finish()
+                node.hold_visualization()
             finally:node.destroy_node()
         if rclpy.ok():rclpy.shutdown()
         signal.signal(signal.SIGTERM,old_term)

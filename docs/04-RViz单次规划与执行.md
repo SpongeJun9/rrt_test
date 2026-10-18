@@ -23,15 +23,19 @@ bash scripts/start_trial.sh world:=rmul2026
 
 如要使用此前的低速验证参数，在同一命令末尾增加 `nav_profile:=validation`。启动会保存 `navigation.yaml`、派生后的 `site.yaml` 和含 profile 的 `inputs.yaml`。原配置的 0.2 m 半径是否覆盖实车，需要用真实尺寸核对；恢复该参数不会自动解决 GICP 未收敛或地图起点不可通行。
 
-1. 保持车体静止，用 **2D Pose Estimate** 给出当前位置/朝向，观察第 3 份指南的蓝色 PCD 与黄色实时点云对齐。黑白栅格地图仍会正常显示。
+1. 保持车体静止，用 **2D Pose Estimate** 给出当前位置/朝向，观察第 3 份指南的地图与实时点云对齐。定位调试时可勾选 Global PCD map / Live registered scan；二维底图、原代价图与 TerrainMapExt 点云仍可同时显示。
 2. 等待终端提示 RViz 目标输入。默认等候目标 120 秒；定位调试较久时在 site.yaml 增大 `click_timeout_sec`，然后重启。
 3. 在 `Global Costmap` / `Local Costmap` 的彩色叠加图上观察可通行区，使用专用 RViz 的 **2D Goal Pose** 点击、拖动、释放。固定坐标系保持 `map`；显示代价图不改变 Goal 的坐标系。
 4. 程序冻结首个目标，获取当前定位起点，调用一次 RAG 服务，校验并加密返回折线，再发送一次 FollowPath。
-5. 完成/失败后启动组退出，新任务重新运行命令。执行期间再次点击不会换目标、不会触发第二次规划。
+5. 完成/失败后保留 RViz、定位和原导航节点，不再自动规划或执行。`RAG trial status` 显示任务状态；失败时显示红色文字和起点附近的净空示意框。新任务先 Ctrl+C 结束整组，再重新运行命令。执行期间或任务结束后再次点击不会触发第二次规划。
 
 工具必须是本包 `rviz_default_plugins/SetGoal`，话题 `/rag_rrt/goal_pose`。原 `nav2_rviz_plugins/GoalTool` 外观相近，却会发起原导航 Action，不能用于本试验。
 
 `RAG single planned path` 显示绿色参考路径；黑白底图、彩色代价图和绿色路径可同时显示。当前 RAG 读取原始 `/map` 并按原配置车体半径做自身碰撞检查；代价图是原 Nav2 感知/膨胀结果的叠加显示，不代表 RAG 改为优化 Nav2 的膨胀代价值。
+
+界面基于原工程 RViz 配置保留地图、点云、RobotModel、局部 Path 和 Lookahead Point。原 Navigation 2 面板已移除，GoalTool 替换为 SetGoal，避免误发带自动重规划的导航 Action。全局 Path 改为订阅本次 RAG 参考路径。显示参考图的风格无需重新建图；真实障碍布局仍由自己的地图和传感器决定。
+
+若终端显示 `Start is not valid ... (4 cells)`，是 RAG 拒绝净空不足的起点，不是 RViz 进程自身退出。保持 RViz 后可检查起点与真实机器人是否对齐、周围是否确有障碍。状态框只作位置示意，不移动起点、不清除地图障碍、不自动降低半径。当前任务已结束，需要人工修正后开启新任务。
 
 若日志出现 `Exec format error`，先停止本次启动并在根目录重新运行 `bash scripts/build_workspace.sh`。2026-10-18 实机发现两个 RAG 入口曾为空文件，导致后端和目标接收节点均未启动；现已加入构建后校验与 launch 启动前检查。等待终端出现 `waiting on /rag_rrt/goal_pose` 后再给目标；若超过目标等待时间，需要重启本次任务。
 

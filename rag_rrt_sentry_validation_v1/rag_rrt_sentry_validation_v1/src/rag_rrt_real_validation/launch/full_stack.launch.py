@@ -36,7 +36,8 @@ def setup(context):
     if not image.is_file():
         raise RuntimeError('Map image does not exist: '+str(image))
     site = yaml.safe_load(site_path.read_text(encoding='utf-8'))
-    site.update(goal_from_pose=True, goal_from_click=False, ready_timeout_sec=120.0)
+    site.update(goal_from_pose=True, goal_from_click=False, ready_timeout_sec=120.0,
+                keep_visualization_after_trial=True)
     original = nav_path.read_text(encoding='utf-8')
     profile = value('nav_profile')
     nav, site = prepare_stack(yaml.safe_load(original.replace('<robot_namespace>', '')), site, profile)
@@ -89,7 +90,8 @@ def setup(context):
         Node(package='rviz2', executable='rviz2', name='rviz2', output='screen',
              arguments=['-d', str(own_share/'config/rag_single_plan.rviz')]),
         include(own_share/'launch/trial.launch.py', dict(goal_from_pose='true', goal_from_click='false',
-            method=value('method'), seed=value('seed'), execute='true', output_dir=str(session))),
+            method=value('method'), seed=value('seed'), execute='true', output_dir=str(session),
+            shutdown_on_trial_exit='false')),
     ]
     print('RAG full stack configuration and results: '+str(session), flush=True)
     print('Navigation profile: '+profile+'; RAG clearance radius: '+str(site['planner_radius_m'])+' m', flush=True)

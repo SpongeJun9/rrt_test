@@ -4,6 +4,7 @@
 navigation_profile: validation
 planner_radius_m: -1.0
 expected_navigation_parameters: '{}'
+keep_visualization_after_trial: false
 map_topic: /map
 odom_topic: /odometry
 cmd_vel_topic: /cmd_vel

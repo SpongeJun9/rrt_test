@@ -1,10 +1,10 @@
-import math
 import os
 from pathlib import Path
 import yaml
 from ament_index_python.packages import get_package_prefix, get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, EmitEvent, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, EmitEvent, LogInfo, RegisterEventHandler
+from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessExit
 from launch.events import Shutdown
 from launch.substitutions import LaunchConfiguration
@@ -42,6 +42,7 @@ def generate_launch_description():
              'method': site['method'], 'seed': str(site['seed']),
              'run_dir': '', 'output_dir': str(Path.home() / 'rag_rrt_real_results')}
     args = [DeclareLaunchArgument(n, default_value=v) for n,v in names.items()]
+    args.append(DeclareLaunchArgument('shutdown_on_trial_exit', default_value='true'))
     params = dict(site)
     params.update({'use_sim_time': False, 'planner_service': '/rag_rrt/validation/compute_path',
                    'config_path': str(site_path)})
@@ -50,7 +51,10 @@ def generate_launch_description():
         params[name] = ParameterValue(LaunchConfiguration(name), value_type=dtype)
     runner = Node(package='rag_rrt_real_validation', executable='trial',
                   name='rag_rrt_validation_trial', output='screen', parameters=[params])
-    # Terminate only our launch processes when this one trial finishes.
+    # Standalone trials terminate their own backend. Full bringup retains the
+    # original hardware/visualization until the operator closes it with Ctrl+C.
     done = RegisterEventHandler(OnProcessExit(target_action=runner,
-                on_exit=[EmitEvent(event=Shutdown(reason='single trial completed'))]))
+                on_exit=[LogInfo(msg='Single RAG trial process finished. No automatic retry.'),
+                    EmitEvent(event=Shutdown(reason='single trial completed'),
+                              condition=IfCondition(LaunchConfiguration('shutdown_on_trial_exit')))]))
     return LaunchDescription(args + [done, backend, runner])
